@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Turtle Nesting Survey — Former Toronto Humber Yacht Club</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<style>
+  html, body { height: 100%; margin: 0; -webkit-text-size-adjust: 100%; }
+  #map { position: absolute; inset: 0; background: #0b1a2b; }
+  .panel {
+    font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: rgba(17,24,33,0.85); color: #f2f4f7;
+    border-radius: 9px; box-shadow: 0 1px 6px rgba(0,0,0,0.45);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  }
+  /* Header */
+  #header { position: absolute; top: 10px; left: 10px; z-index: 1000;
+            max-width: 300px; padding: 9px 12px; }
+  #header h1 { margin: 0 0 2px; font-size: 15px; font-weight: 650; }
+  #header p  { margin: 0; font-size: 12px; color: #c7ccd3; }
+  #header .org { color: #67c98a; font-weight: 600; }
+  #header .hint { margin-top: 5px; }
+  /* Protected-nest logo marker */
+  .logo-pin img { border-radius: 50%; background: #fff;
+                  box-shadow: 0 0 0 2px #fff, 0 1px 5px rgba(0,0,0,.55); }
+  /* Legend (collapsible) */
+  .legend { padding: 8px 11px; max-width: 62vw; }
+  .legend summary { cursor: pointer; font-weight: 650; font-size: 12.5px;
+                    list-style: none; outline: none; user-select: none; }
+  .legend summary::-webkit-details-marker { display: none; }
+  .legend summary::after { content: " ▾"; color: #9aa3ad; }
+  .legend[open] summary::after { content: " ▴"; }
+  .legend .rows { margin-top: 6px; }
+  .legend .row { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 1.75; }
+  .dot { width: 13px; height: 13px; border-radius: 50%; flex: none;
+         border: 2px solid #fff; box-sizing: border-box; }
+  .swatch { width: 16px; height: 12px; flex: none; border-radius: 2px; box-sizing: border-box; }
+  .li-protect { width: 20px; height: 20px; flex: none; border-radius: 50%; border: 1px solid #fff;
+                background: #f9a825 url('assets/tp-logo.png') center/cover no-repeat; }
+  .li-hatch { border: 1px solid #e53935;
+              background: repeating-linear-gradient(45deg, #e53935 0 2px, rgba(229,57,53,0.10) 2px 7px); }
+  /* Popups */
+  .leaflet-popup-content { margin: 10px 12px; width: min(250px, 76vw) !important; }
+  .pop h3 { margin: 0 0 4px; font-size: 14px; }
+  .pop .d { margin: 0 0 8px; font-size: 12.5px; color: #333; }
+  .pop figure { margin: 0 0 8px; }
+  .pop img, .pop video { width: 100%; border-radius: 6px; display: block; background: #000; }
+  .pop figcaption { font-size: 11px; color: #666; margin-top: 3px; }
+  .pop .media { max-height: min(56vh, 360px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .pop .tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .3px;
+              text-transform: uppercase; color: #fff; background: #c8a400;
+              padding: 1px 6px; border-radius: 10px; margin-bottom: 6px; }
+  .pop .tag.video { background: #6a1b9a; }
+  .pop .tag.warn  { background: #e53935; }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    #header { max-width: 74vw; padding: 7px 10px; top: 8px; left: 8px; }
+    #header h1 { font-size: 13.5px; }
+    #header p  { font-size: 11px; }
+    #header .hint { display: none; }
+    .legend { font-size: 12px; }
+    .legend .row { font-size: 11.5px; line-height: 1.6; }
+    .leaflet-control-zoom { margin-top: 8px !important; }
+  }
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="header" class="panel">
+  <h1>Turtle Nesting Survey</h1>
+  <p>Former Toronto Humber Yacht Club &middot; <span class="org">Turtle Protectors</span></p>
+  <p class="hint">Tap any pin for photos, video &amp; details.</p>
+</div>
+
+<script src="data.js"></script>
+<script>
+  const TOKEN = "pk.eyJ1IjoicHJhdmFyMTIiLCJhIjoiY205NW04ZmpqMDJkNDJqb2d1bXl0MzQyMyJ9.8x6vv9N-pW5Cp9rI05B9tw";
+
+  const map = L.map("map", { zoomControl: false, tap: true }).setView(MAP_DATA.center, 18);
+  L.control.zoom({ position: "topright" }).addTo(map);
+  map.attributionControl.setPosition("bottomleft");
+
+  // --- Satellite basemap (Mapbox) ---
+  L.tileLayer(
+    "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=" + TOKEN,
+    { tileSize: 512, zoomOffset: -1, maxZoom: 22,
+      attribution: '&copy; <a href="https://www.mapbox.com/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }
+  ).addTo(map);
+
+  const PREDATED = "#ffd400", SLOPE = "#2e7d32", PROTECT_FALLBACK = "#f9a825";
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+
+  function mediaHTML(m) {
+    if (m.t === "video") {
+      return `<figure><span class="tag video">Video</span>
+        <video controls preload="none" playsinline poster="${m.poster}">
+          <source src="${m.src}" type="video/mp4"></video>
+        ${m.cap ? `<figcaption>${esc(m.cap)}</figcaption>` : ""}</figure>`;
+    }
+    return `<figure><img loading="lazy" src="${m.src}" alt="${esc(m.cap||'')}">
+        ${m.cap ? `<figcaption>${esc(m.cap)}</figcaption>` : ""}</figure>`;
+  }
+  function popupHTML(title, desc, media, badge, badgeClass) {
+    let h = `<div class="pop">`;
+    if (badge) h += `<span class="tag ${badgeClass||''}">${esc(badge)}</span>`;
+    h += `<h3>${esc(title)}</h3>`;
+    if (desc) h += `<p class="d">${esc(desc)}</p>`;
+    if (media && media.length) h += `<div class="media">${media.map(mediaHTML).join("")}</div>`;
+    return h + `</div>`;
+  }
+  const ll = ring => ring.map(c => [c[1], c[0]]);
+
+  // --- Survey boundary (subtle outline) ---
+  L.geoJSON(MAP_DATA.boundary, {
+    style: { color: "#ffe082", weight: 2, opacity: 0.85, dashArray: "6 6", fill: false }
+  }).bindTooltip("Surveyed area boundary", { sticky: true }).addTo(map);
+
+  // --- Unsurveyed / active-construction area: RED LINE (hatch) shading ---
+  if (MAP_DATA.constructionArea) {
+    const c = MAP_DATA.constructionArea;
+    const poly = L.polygon(ll(c.ring), {
+      color: "#e53935", weight: 1.6, opacity: 0.95,
+      fillColor: "url(#redhatch)", fillOpacity: 0.9
+    })
+    .bindTooltip(c.desc, { sticky: true, direction: "top" })
+    .bindPopup(popupHTML(c.name, c.desc, [], "Not surveyed", "warn"))
+    .addTo(map);
+
+    (function addHatch() {
+      const path = poly.getElement();
+      if (!path) return setTimeout(addHatch, 60);
+      const svg = path.ownerSVGElement;
+      if (svg && !svg.querySelector("#redhatch")) {
+        const NS = "http://www.w3.org/2000/svg";
+        const defs = document.createElementNS(NS, "defs");
+        defs.innerHTML =
+          '<pattern id="redhatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">' +
+          '<rect width="7" height="7" fill="rgba(229,57,53,0.10)"/>' +
+          '<line x1="0" y1="0" x2="0" y2="7" stroke="#e53935" stroke-width="2.2"/></pattern>';
+        svg.insertBefore(defs, svg.firstChild);
+      }
+      path.setAttribute("fill", "url(#redhatch)");
+    })();
+  }
+
+  // --- Nest density areas (shaded polygons) ---
+  MAP_DATA.densityAreas.forEach(a => {
+    L.polygon(ll(a.ring), {
+      color: "#ffb300", weight: 1.5, opacity: 0.9, dashArray: "4 4",
+      fillColor: "#ff9800", fillOpacity: 0.14
+    }).bindPopup(popupHTML(a.name, a.desc, [])).addTo(map);
+  });
+
+  // --- Density-area media pins (predated nests -> yellow) ---
+  MAP_DATA.densityPins.forEach(p => {
+    const m = p.media[0], isVid = m.t === "video";
+    L.circleMarker([p.lat, p.lng], {
+      radius: 6, color: "#ffffff", weight: 1.5,
+      fillColor: PREDATED, fillOpacity: 0.95
+    }).bindPopup(
+      popupHTML(`Predated Nest — Nest Density Area #${p.area}`,
+                "One of several predated nests documented within this zone.",
+                p.media, isVid ? "Video" : "Photo", isVid ? "video" : ""),
+      { maxWidth: 280 }
+    ).addTo(map);
+  });
+
+  // --- Point markers ---
+  const logoIcon = L.icon({
+    iconUrl: "assets/tp-logo.png", iconSize: [46, 46], iconAnchor: [23, 23],
+    popupAnchor: [0, -22], className: "logo-pin"
+  });
+  function addProtected(p) {
+    const popup = popupHTML(p.title, p.desc, p.media);
+    const probe = new Image();
+    probe.onload  = () => L.marker([p.lat, p.lng], { icon: logoIcon, zIndexOffset: 1000 })
+                            .bindPopup(popup, { maxWidth: 280 }).addTo(map);
+    probe.onerror = () => L.circleMarker([p.lat, p.lng], {
+                            radius: 11, color: "#fff", weight: 3,
+                            fillColor: PROTECT_FALLBACK, fillOpacity: 0.95
+                          }).bindPopup(popup, { maxWidth: 280 }).addTo(map);
+    probe.src = "assets/tp-logo.png";
+  }
+  MAP_DATA.points.forEach(p => {
+    if (p.type === "protected") { addProtected(p); return; }
+    L.circleMarker([p.lat, p.lng], {
+      radius: 9, color: "#ffffff", weight: 2,
+      fillColor: p.type === "slope" ? SLOPE : PREDATED, fillOpacity: 0.95
+    }).bindPopup(popupHTML(p.title, p.desc, p.media), { maxWidth: 280 }).addTo(map);
+  });
+
+  // --- Fit to all features ---
+  map.fitBounds(MAP_DATA.bounds, { padding: [50, 50], maxZoom: 19 });
+
+  // --- Legend ---
+  const legend = L.control({ position: "bottomright" });
+  legend.onAdd = function () {
+    const d = L.DomUtil.create("details", "panel legend");
+    d.open = true;
+    d.innerHTML =
+      '<summary>Survey findings</summary><div class="rows">' +
+      '<div class="row"><span class="li-protect"></span> Protected snapping-turtle nest (39 eggs)</div>' +
+      '<div class="row"><span class="dot" style="background:#ffd400"></span> Predated turtle nest</div>' +
+      '<div class="row"><span class="dot" style="background:#2e7d32"></span> Graduated slope to water</div>' +
+      '<div class="row"><span class="swatch li-hatch"></span> Unsurveyed — active construction</div>' +
+      '</div>';
+    L.DomEvent.disableClickPropagation(d);
+    L.DomEvent.disableScrollPropagation(d);
+    return d;
+  };
+  legend.addTo(map);
+
+  L.DomEvent.disableClickPropagation(document.getElementById("header"));
+</script>
+</body>
+</html>
