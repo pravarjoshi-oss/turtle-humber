@@ -13,8 +13,9 @@
 <style>
   html, body { height: 100%; margin: 0; -webkit-text-size-adjust: 100%; }
   #map { position: absolute; inset: 0; background: #0b1a2b; }
+  body, .leaflet-container, .leaflet-popup-content, .leaflet-control { font-family: "Times New Roman", Times, serif; }
   .panel {
-    font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 13px/1.4 "Times New Roman", Times, serif;
     background: rgba(17,24,33,0.85); color: #f2f4f7;
     border-radius: 9px; box-shadow: 0 1px 6px rgba(0,0,0,0.45);
     -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
@@ -63,15 +64,13 @@
   /* larger, high-contrast close button */
   .leaflet-popup-close-button {
     width: 30px !important; height: 30px !important;
-    font: 700 22px/28px system-ui, -apple-system, sans-serif !important;
+    font: 700 22px/28px "Times New Roman", Times, serif !important;
     text-align: center; padding: 0 !important; color: #444 !important;
     top: 4px !important; right: 4px !important;
     background: rgba(255,255,255,0.92); border-radius: 50%;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
   }
   .leaflet-popup-close-button:hover { color: #000 !important; background: #fff; }
-  /* hotspot popup accent */
-  .area-popup .leaflet-popup-content-wrapper { border-top: 3px solid #2e7d32; }
 
   /* Mobile */
   @media (max-width: 600px) {
@@ -155,7 +154,7 @@
       fillColor: "url(#redhatch)", fillOpacity: 0.9
     })
     .bindTooltip(c.desc, { sticky: true, direction: "top" })
-    .bindPopup(popupHTML(c.name, c.desc, [], "Not surveyed", "warn"), POPUP_OPTS)
+    .bindPopup(popupHTML(c.name, c.desc, []), POPUP_OPTS)
     .addTo(map);
 
     (function addHatch() {
@@ -225,15 +224,12 @@
   // --- Legend ---
   const legend = L.control({ position: "bottomright" });
   legend.onAdd = function () {
-    const d = L.DomUtil.create("details", "panel legend");
-    d.open = true;
+    const d = L.DomUtil.create("div", "panel legend");
     d.innerHTML =
-      '<summary>Survey findings</summary><div class="rows">' +
       '<div class="row"><span class="li-protect"></span> Protected snapping-turtle nest (39 eggs)</div>' +
       '<div class="row"><span class="dot" style="background:#ffd400"></span> Predated turtle nest</div>' +
       '<div class="row"><span class="dot" style="background:#2e7d32"></span> Graduated slope to water</div>' +
-      '<div class="row"><span class="swatch li-hatch"></span> Unsurveyed — active construction</div>' +
-      '</div>';
+      '<div class="row"><span class="swatch li-hatch"></span> Unsurveyed — active construction</div>';
     L.DomEvent.disableClickPropagation(d);
     L.DomEvent.disableScrollPropagation(d);
     return d;
