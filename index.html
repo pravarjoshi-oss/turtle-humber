@@ -95,7 +95,7 @@
 
 <div id="header" class="panel">
   <h1>Turtle Nesting Activity along Humber</h1>
-  <p><span class="org">Turtle Protectors</span> surveyed the area where Humber Yacht Club used to operate. <strong>Click on any of the dots to see more information.</strong></p>
+  <p><span class="org">Turtle Protectors</span> surveyed this area and found evidence of ~20 predated nests which could have led to 200+ eggs successfully hatching and entering the Humber with our stewardship. <strong>Click on the dots to see the evidence we gathered.</strong></p>
 </div>
 
 <script src="data.js"></script>
@@ -200,15 +200,13 @@
     });
   });
 
-  // --- Hotspot media pins (predated nests -> yellow; media only, no text) ---
+  // --- Hotspot media pins (predated nests -> yellow; header + media) ---
+  const HOTSPOT_PIN_TITLE = "Evidence of Turtle Nest Predation — Eggshells & Exposed Nest Cavities";
   MAP_DATA.densityPins.forEach(p => {
     L.circleMarker([p.lat, p.lng], {
       radius: 6, color: "#ffffff", weight: 1.5,
       fillColor: PREDATED, fillOpacity: 0.95
-    }).bindPopup(
-      `<div class="pop"><div class="media">${p.media.map(mediaHTML).join("")}</div></div>`,
-      POPUP_OPTS
-    ).addTo(map);
+    }).bindPopup(popupHTML(HOTSPOT_PIN_TITLE, "", p.media), POPUP_OPTS).addTo(map);
   });
 
   // --- Point markers ---
