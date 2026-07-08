@@ -240,7 +240,11 @@
   };
   legend.addTo(map);
 
-  L.DomEvent.disableClickPropagation(document.getElementById("header"));
+  // hide the top-left header while a popup is open so it can never cover the popup
+  const headerEl = document.getElementById("header");
+  L.DomEvent.disableClickPropagation(headerEl);
+  map.on("popupopen",  () => { headerEl.style.display = "none"; });
+  map.on("popupclose", () => { headerEl.style.display = ""; });
 </script>
 </body>
 </html>
