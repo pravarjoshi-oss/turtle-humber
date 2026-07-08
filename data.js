@@ -114,7 +114,7 @@ const MAP_DATA = {
   "densityAreas": [
     {
       "id": 1,
-      "name": "Nest Density Area #1",
+      "name": "Turtle Nesting Hotspot #1",
       "ring": [
         [
           -79.4912103,
@@ -137,11 +137,11 @@ const MAP_DATA = {
           43.6434731
         ]
       ],
-      "desc": "Several predated nests were found throughout this zone."
+      "desc": "8–10 likely predated nests were seen, of a mix of Snapping Turtle and smaller species (Blanding’s, Northern Map, Midland Painted, and Red-Eared Slider)."
     },
     {
       "id": 2,
-      "name": "Nest Density Area #2",
+      "name": "Turtle Nesting Hotspot #2",
       "ring": [
         [
           -79.4913305,
@@ -164,11 +164,11 @@ const MAP_DATA = {
           43.643811
         ]
       ],
-      "desc": "Several predated nests were found throughout this zone."
+      "desc": "5–7 likely predated nests were seen, of a mix of Snapping Turtle and smaller species (Blanding’s, Northern Map, Midland Painted, and Red-Eared Slider)."
     }
   ],
   "constructionArea": {
-    "name": "Unsurveyed \u2014 Active Construction",
+    "name": "Unsurveyed — Active Construction",
     "ring": [
       [
         -79.4914617,
@@ -212,7 +212,7 @@ const MAP_DATA = {
       "lng": -79.49075,
       "type": "predated",
       "title": "Predated Turtle Nest",
-      "desc": "A predated turtle nest \u2014 eggs dug up and eaten by a predator, leaving scattered eggshells. Documented ~1:46 PM.",
+      "desc": "2 adjacent predated nests. These were likely laid by a Midland Painted, Northern Map, Blanding’s, or Red-Eared Slider turtle.",
       "media": [
         {
           "t": "photo",
@@ -232,7 +232,7 @@ const MAP_DATA = {
       "lng": -79.490833,
       "type": "slope",
       "title": "Graduated Slope to Water",
-      "desc": "A gentle, natural slope between land and water \u2014 the kind of gradual ramp turtles can use to safely climb ashore to nest and return to the water.",
+      "desc": "A natural slope between land and water for turtles to use.",
       "media": []
     },
     {
@@ -241,7 +241,7 @@ const MAP_DATA = {
       "lng": -79.490889,
       "type": "predated",
       "title": "Multiple Predated Turtle Nests",
-      "desc": "Several predated turtle nests clustered together, eggshells scattered across the ground. Documented ~1:51 PM.",
+      "desc": "2–3 predated nests. These were likely laid by a Midland Painted, Northern Map, Blanding’s, or Red-Eared Slider turtle.",
       "media": [
         {
           "t": "photo",
@@ -266,7 +266,7 @@ const MAP_DATA = {
       "lng": -79.490917,
       "type": "slope",
       "title": "Graduated Slope to Water",
-      "desc": "Another gentle, natural slope to the water \u2014 a potential safe access point for nesting turtles. Documented ~1:52 PM.",
+      "desc": "A natural slope between land and water for turtles to use.",
       "media": [
         {
           "t": "photo",
@@ -281,36 +281,71 @@ const MAP_DATA = {
       "lng": -79.491222,
       "type": "protected",
       "title": "Protected & Excavated Snapping Turtle Nest",
-      "desc": "We encountered a snapping turtle nesting here during the survey and protected the nest. It was later excavated \u2014 39 eggs recovered and sent to incubation.",
-      "media": [
+      "desc": "",
+      "media": [],
+      "blocks": [
+        {
+          "t": "text",
+          "v": "Luckily, we saw a Snapping Turtle laying eggs on June 11 while surveying. She had a tracker on her shell, which means she was part of a research study at some point in her long life."
+        },
         {
           "t": "photo",
           "src": "assets/8-TurtleWhoNested.jpg",
-          "cap": "The snapping turtle that nested here"
+          "cap": "The Snapping Turtle who nested here"
+        },
+        {
+          "t": "text",
+          "v": "We protected the nest."
         },
         {
           "t": "photo",
           "src": "assets/8-NestProtector.jpg",
-          "cap": "Nest protector installed over the nest"
+          "cap": "The nest protector we installed"
+        },
+        {
+          "t": "text",
+          "v": "A couple weeks later, we excavated the nest due to risk of construction activities, and 39 eggs were sent for incubation."
         },
         {
           "t": "photo",
           "src": "assets/9-ExcavatedEggs.jpg",
-          "cap": "Excavated eggs \u2014 39 recovered for incubation"
+          "cap": "Excavating the nest — 39 eggs recovered for incubation"
         }
       ]
     }
   ],
   "densityPins": [
     {
-      "lat": 43.6435103,
-      "lng": -79.491118,
+      "lat": 43.6435659,
+      "lng": -79.4911598,
       "area": 1,
       "media": [
         {
-          "t": "video",
-          "src": "assets/67-8.mp4",
-          "poster": "assets/67-8-poster.jpg"
+          "t": "photo",
+          "src": "assets/67-1.jpg"
+        },
+        {
+          "t": "photo",
+          "src": "assets/67-2.jpg"
+        },
+        {
+          "t": "photo",
+          "src": "assets/67-3.jpg"
+        }
+      ]
+    },
+    {
+      "lat": 43.6435432,
+      "lng": -79.4911364,
+      "area": 1,
+      "media": [
+        {
+          "t": "photo",
+          "src": "assets/67-6.jpg"
+        },
+        {
+          "t": "photo",
+          "src": "assets/67-7.jpg"
         }
       ]
     },
@@ -326,13 +361,25 @@ const MAP_DATA = {
       ]
     },
     {
-      "lat": 43.6435269,
-      "lng": -79.4911246,
+      "lat": 43.6435733,
+      "lng": -79.4911491,
       "area": 1,
       "media": [
         {
           "t": "photo",
-          "src": "assets/67-3.jpg"
+          "src": "assets/67-5.jpg"
+        }
+      ]
+    },
+    {
+      "lat": 43.6435103,
+      "lng": -79.491118,
+      "area": 1,
+      "media": [
+        {
+          "t": "video",
+          "src": "assets/67-8.mp4",
+          "poster": "assets/67-8-poster.jpg"
         }
       ]
     },
@@ -349,28 +396,6 @@ const MAP_DATA = {
       ]
     },
     {
-      "lat": 43.6435404,
-      "lng": -79.4911216,
-      "area": 1,
-      "media": [
-        {
-          "t": "photo",
-          "src": "assets/67-6.jpg"
-        }
-      ]
-    },
-    {
-      "lat": 43.643546,
-      "lng": -79.4911511,
-      "area": 1,
-      "media": [
-        {
-          "t": "photo",
-          "src": "assets/67-7.jpg"
-        }
-      ]
-    },
-    {
       "lat": 43.6435687,
       "lng": -79.4911065,
       "area": 1,
@@ -383,87 +408,14 @@ const MAP_DATA = {
       ]
     },
     {
-      "lat": 43.6435712,
-      "lng": -79.4911521,
-      "area": 1,
-      "media": [
-        {
-          "t": "photo",
-          "src": "assets/67-5.jpg"
-        }
-      ]
-    },
-    {
-      "lat": 43.6435824,
-      "lng": -79.491165,
-      "area": 1,
-      "media": [
-        {
-          "t": "photo",
-          "src": "assets/67-1.jpg"
-        }
-      ]
-    },
-    {
-      "lat": 43.6435947,
-      "lng": -79.4911807,
-      "area": 1,
-      "media": [
-        {
-          "t": "photo",
-          "src": "assets/67-2.jpg"
-        }
-      ]
-    },
-    {
-      "lat": 43.6438639,
-      "lng": -79.4912681,
+      "lat": 43.6439379,
+      "lng": -79.4913164,
       "area": 2,
       "media": [
         {
           "t": "photo",
-          "src": "assets/1011-4.jpg"
-        }
-      ]
-    },
-    {
-      "lat": 43.6438604,
-      "lng": -79.4912553,
-      "area": 2,
-      "media": [
-        {
-          "t": "photo",
-          "src": "assets/1011-6.jpg"
-        }
-      ]
-    },
-    {
-      "lat": 43.6438966,
-      "lng": -79.4913113,
-      "area": 2,
-      "media": [
-        {
-          "t": "photo",
-          "src": "assets/1011-3.jpg"
-        }
-      ]
-    },
-    {
-      "lat": 43.6439034,
-      "lng": -79.4912803,
-      "area": 2,
-      "media": [
-        {
-          "t": "photo",
-          "src": "assets/1011-5.jpg"
-        }
-      ]
-    },
-    {
-      "lat": 43.6439185,
-      "lng": -79.4913168,
-      "area": 2,
-      "media": [
+          "src": "assets/1011-1.jpg"
+        },
         {
           "t": "photo",
           "src": "assets/1011-2.jpg"
@@ -471,13 +423,36 @@ const MAP_DATA = {
       ]
     },
     {
-      "lat": 43.6439291,
-      "lng": -79.4913055,
+      "lat": 43.6438802,
+      "lng": -79.4912897,
       "area": 2,
       "media": [
         {
           "t": "photo",
-          "src": "assets/1011-9.jpg"
+          "src": "assets/1011-3.jpg"
+        },
+        {
+          "t": "photo",
+          "src": "assets/1011-4.jpg"
+        }
+      ]
+    },
+    {
+      "lat": 43.6439058,
+      "lng": -79.4912996,
+      "area": 2,
+      "media": [
+        {
+          "t": "photo",
+          "src": "assets/1011-5.jpg"
+        },
+        {
+          "t": "photo",
+          "src": "assets/1011-6.jpg"
+        },
+        {
+          "t": "photo",
+          "src": "assets/1011-7.jpg"
         }
       ]
     },
@@ -493,24 +468,13 @@ const MAP_DATA = {
       ]
     },
     {
-      "lat": 43.6439573,
-      "lng": -79.4913159,
+      "lat": 43.6439291,
+      "lng": -79.4913055,
       "area": 2,
       "media": [
         {
           "t": "photo",
-          "src": "assets/1011-1.jpg"
-        }
-      ]
-    },
-    {
-      "lat": 43.6439537,
-      "lng": -79.4913633,
-      "area": 2,
-      "media": [
-        {
-          "t": "photo",
-          "src": "assets/1011-7.jpg"
+          "src": "assets/1011-9.jpg"
         }
       ]
     }
