@@ -137,7 +137,7 @@ const MAP_DATA = {
           43.6434731
         ]
       ],
-      "desc": "8–10 likely predated nests were seen, of a mix of Snapping Turtle and smaller species (Blanding’s, Northern Map, Midland Painted, and Red-Eared Slider)."
+      "desc": "8–10 likely predated nests were seen, of a mix of Snapping Turtle and smaller species (Blanding’s, Northern Map, Midland Painted, and Red-Eared Slider). Click on any yellow dot to see evidence."
     },
     {
       "id": 2,
@@ -164,7 +164,7 @@ const MAP_DATA = {
           43.643811
         ]
       ],
-      "desc": "5–7 likely predated nests were seen, of a mix of Snapping Turtle and smaller species (Blanding’s, Northern Map, Midland Painted, and Red-Eared Slider)."
+      "desc": "5–7 likely predated nests were seen, of a mix of Snapping Turtle and smaller species (Blanding’s, Northern Map, Midland Painted, and Red-Eared Slider). Click on any yellow dot to see evidence."
     }
   ],
   "constructionArea": {
