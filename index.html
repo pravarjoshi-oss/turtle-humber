@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Turtle Nesting Survey — Former Toronto Humber Yacht Club</title>
+<title>Turtle Nesting In Former Toronto Humber Yacht Club Area</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -65,16 +65,12 @@
   .leaflet-popup-close-button {
     width: 30px !important; height: 30px !important;
     font: 700 22px/28px "Times New Roman", Times, serif !important;
-    text-align: center; padding: 0 !important; color: #444 !important;
+    text-align: center; padding: 0 !important; color: #000 !important;
     top: 4px !important; right: 4px !important;
     background: rgba(255,255,255,0.92); border-radius: 50%;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
   }
-  .leaflet-popup-close-button:hover { color: #000 !important; background: #fff; }
-  /* permanent hotspot labels: click-through so pins stay clickable; no close button */
-  .area-popup .leaflet-popup-content-wrapper,
-  .area-popup .leaflet-popup-tip { pointer-events: none; }
-  .area-popup .leaflet-popup-close-button { display: none; }
+  .leaflet-popup-close-button:hover { background: #fff; }
 
   /* Mobile */
   @media (max-width: 600px) {
@@ -149,6 +145,16 @@
     return h + `</div>`;
   }
   const ll = ring => ring.map(c => [c[1], c[0]]);
+  // ray-cast point-in-polygon; ring is [[lng,lat],...]
+  function pointInRing(plng, plat, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+      if (((yi > plat) !== (yj > plat)) &&
+          (plng < (xj - xi) * (plat - yi) / (yj - yi) + xi)) inside = !inside;
+    }
+    return inside;
+  }
 
   // --- Unsurveyed / active-construction area: RED LINE (hatch) shading ---
   if (MAP_DATA.constructionArea) {
@@ -178,24 +184,20 @@
     })();
   }
 
-  // --- Turtle Nesting Hotspots (green polygons + permanent label at the east corner) ---
-  const areaLabels = [];
+  // --- Turtle Nesting Hotspots (green polygons; click AWAY from the dots for details) ---
   MAP_DATA.densityAreas.forEach(a => {
-    L.polygon(ll(a.ring), {
+    const poly = L.polygon(ll(a.ring), {
       color: "#1b5e20", weight: 1.8, opacity: 0.95, dashArray: "5 4",
-      fillColor: "#43a047", fillOpacity: 0.25
+      fillColor: "#43a047", fillOpacity: 0.25, bubblingMouseEvents: false
     }).addTo(map);
-    const east = a.ring.reduce((mx, c) => (c[0] > mx[0] ? c : mx), a.ring[0]); // right-most corner [lng,lat]
-    const label = L.popup({ autoClose: false, closeOnClick: false, autoPan: false,
-      className: "area-popup", maxWidth: 230, minWidth: 190 })
-      .setLatLng([east[1], east[0]])
-      .setContent(popupHTML(a.name, a.desc, []));
-    label._isAreaLabel = true;
-    areaLabels.push(label);
-  });
-  const isAreaLabel = p => p && p._isAreaLabel;
-  const setAreaLabels = show => areaLabels.forEach(p => {
-    const el = p.getElement(); if (el) el.style.display = show ? "" : "none";
+    const noZone = a.noZone;
+    const areaPopup = L.popup(POPUP_OPTS).setContent(popupHTML(a.name, a.desc, []));
+    poly.on("click", e => {
+      // ignore clicks inside the dot cluster (no-popup zone)
+      if (noZone && pointInRing(e.latlng.lng, e.latlng.lat, noZone)) return;
+      areaPopup.setLatLng(e.latlng);
+      map.openPopup(areaPopup);
+    });
   });
 
   // --- Hotspot media pins (predated nests -> yellow; media only, no text) ---
@@ -243,6 +245,7 @@
     d.innerHTML =
       '<div class="row"><span class="li-protect"></span> Protected snapping-turtle nest (39 eggs)</div>' +
       '<div class="row"><span class="dot" style="background:#ffd400"></span> Predated turtle nest</div>' +
+      '<div class="row"><span class="swatch" style="background:#43a047;opacity:.6;border:1px dashed #1b5e20"></span> Nesting Hotspot Areas</div>' +
       '<div class="row"><span class="dot" style="background:#2e7d32"></span> Graduated slope to water</div>' +
       '<div class="row"><span class="swatch li-hatch"></span> Unsurveyed — active construction</div>';
     L.DomEvent.disableClickPropagation(d);
@@ -251,22 +254,11 @@
   };
   legend.addTo(map);
 
-  // show the permanent hotspot labels (visible only when no other popup is open)
-  areaLabels.forEach(p => p.openOn(map));
-
-  // while another popup is open, hide the header AND the hotspot labels
+  // hide the top-left header while any popup is open so it can never cover it
   const headerEl = document.getElementById("header");
   L.DomEvent.disableClickPropagation(headerEl);
-  map.on("popupopen", e => {
-    if (isAreaLabel(e.popup)) return;
-    headerEl.style.display = "none";
-    setAreaLabels(false);
-  });
-  map.on("popupclose", e => {
-    if (isAreaLabel(e.popup)) return;
-    headerEl.style.display = "";
-    setAreaLabels(true);
-  });
+  map.on("popupopen",  () => { headerEl.style.display = "none"; });
+  map.on("popupclose", () => { headerEl.style.display = ""; });
 </script>
 </body>
 </html>
