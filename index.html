@@ -30,6 +30,20 @@
   /* Protected-nest logo marker */
   .logo-pin img { border-radius: 50%; background: #fff;
                   box-shadow: 0 0 0 2px #fff, 0 1px 5px rgba(0,0,0,.55); }
+  /* first-load "click me" callout: pulsing halo behind the pin + bobbing label */
+  .callout-halo { width: 26px; height: 26px; border-radius: 50%; background: transparent; border: none;
+                  animation: calloutPulse 1.4s ease-out infinite; }
+  @keyframes calloutPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(249,168,37,0.85); }
+    70%  { box-shadow: 0 0 0 18px rgba(249,168,37,0); }
+    100% { box-shadow: 0 0 0 0 rgba(249,168,37,0); }
+  }
+  .leaflet-tooltip.callout-tip { background: #1b5e20; color: #fff; border: 1px solid #1b5e20;
+    font: 700 12px/1.3 "Times New Roman", Times, serif; padding: 6px 10px; border-radius: 10px;
+    box-shadow: 0 2px 7px rgba(0,0,0,0.45); text-align: center; white-space: normal; max-width: 190px; }
+  .leaflet-tooltip-top.callout-tip::before { border-top-color: #1b5e20; }
+  .callout-inner { display: inline-block; animation: calloutBob 1.2s ease-in-out infinite; }
+  @keyframes calloutBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
   /* Legend (collapsible) */
   .legend { padding: 8px 11px; max-width: 62vw; }
   .legend summary { cursor: pointer; font-weight: 650; font-size: 12.5px;
@@ -53,7 +67,20 @@
   .pop figure { margin: 0 0 8px; }
   .pop img, .pop video { width: 100%; border-radius: 6px; display: block; background: #000; }
   .pop figcaption { font-size: 11px; color: #666; margin-top: 3px; }
-  .pop .media { max-height: min(56vh, 360px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .pop { position: relative; }
+  .pop .media { max-height: min(56vh, 360px); overflow-y: auto; -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin; scrollbar-color: #000 rgba(0,0,0,0.12); }
+  .pop .media::-webkit-scrollbar { width: 10px; }
+  .pop .media::-webkit-scrollbar-track { background: rgba(0,0,0,0.10); border-radius: 5px; }
+  .pop .media::-webkit-scrollbar-thumb { background: #000; border-radius: 5px;
+                border: 2px solid transparent; background-clip: padding-box; }
+  .scroll-tip { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+    background: rgba(0,0,0,0.82); color: #fff; font: 600 11px/1 "Times New Roman", Times, serif;
+    padding: 5px 11px; border-radius: 12px; pointer-events: none; white-space: nowrap; z-index: 5;
+    opacity: 1; transition: opacity .35s ease; animation: tipBob 1.1s ease-in-out infinite; }
+  .scroll-tip.hide { opacity: 0; }
+  @keyframes tipBob { 0%,100% { transform: translateX(-50%) translateY(0); }
+                      50% { transform: translateX(-50%) translateY(-3px); } }
   .pop .tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .3px;
               text-transform: uppercase; color: #fff; background: #c8a400;
               padding: 1px 6px; border-radius: 10px; margin-bottom: 6px; }
@@ -127,7 +154,7 @@
           <source src="${m.src}" type="video/mp4"></video>
         ${m.cap ? `<figcaption>${esc(m.cap)}</figcaption>` : ""}</figure>`;
     }
-    return `<figure><img loading="lazy" src="${m.src}" alt="${esc(m.cap||'')}">
+    return `<figure><img src="${m.src}" alt="${esc(m.cap||'')}">
         ${m.cap ? `<figcaption>${esc(m.cap)}</figcaption>` : ""}</figure>`;
   }
   function popupHTML(title, desc, media, badge, badgeClass, blocks) {
@@ -163,9 +190,12 @@
       color: "#e53935", weight: 1.6, opacity: 0.95,
       fillColor: "url(#redhatch)", fillOpacity: 0.9
     })
-    .bindTooltip(c.desc, { sticky: true, direction: "top" })
     .bindPopup(popupHTML(c.name, c.desc, []), POPUP_OPTS)
+    .bindTooltip(c.desc, { sticky: true, direction: "top" })
     .addTo(map);
+    // if the area is clicked (popup open), suppress the hover tooltip until it closes
+    poly.on("popupopen",  () => poly.unbindTooltip());
+    poly.on("popupclose", () => poly.bindTooltip(c.desc, { sticky: true, direction: "top" }));
 
     (function addHatch() {
       const path = poly.getElement();
@@ -214,23 +244,50 @@
     iconUrl: "assets/tp-logo.png", iconSize: [46, 46], iconAnchor: [23, 23],
     popupAnchor: [0, -22], className: "logo-pin"
   });
+  // ---- guided "click me" callouts: ID 8 first, then ID 2 after 8 is opened & closed ----
+  const CALLOUT_TEXT = {
+    8: "Click here to learn about the nest we protected",
+    2: "Click here to see evidence of predated nests!"
+  };
+  const CALLOUT_PIN = {};          // stage -> { marker, latlng }
+  const haloIcon = L.divIcon({ className: "callout-halo", html: "", iconSize: [26, 26], iconAnchor: [13, 13] });
+  let guideStage = null, haloMarker = null, armNext = false, popupIsOpen = false;
+  function paintCallout(stage) {
+    const info = CALLOUT_PIN[stage];
+    if (!info) return;
+    guideStage = stage;
+    haloMarker = L.marker(info.latlng, { icon: haloIcon, interactive: false, zIndexOffset: -100 }).addTo(map);
+    info.marker.bindTooltip('<span class="callout-inner">' + CALLOUT_TEXT[stage] + '</span>',
+      { permanent: true, direction: "top", offset: [0, -22], className: "callout-tip", interactive: false }).openTooltip();
+  }
+  function clearCallout() {
+    if (haloMarker) { map.removeLayer(haloMarker); haloMarker = null; }
+    if (guideStage != null) {
+      const info = CALLOUT_PIN[guideStage];
+      if (info && info.marker.getTooltip()) info.marker.unbindTooltip();
+    }
+  }
   function addProtected(p) {
     const popup = popupHTML(p.title, p.desc, p.media, null, null, p.blocks);
+    const attach = marker => {
+      marker.bindPopup(popup, POPUP_OPTS).addTo(map);
+      CALLOUT_PIN[8] = { marker, latlng: [p.lat, p.lng] };
+      paintCallout(8);               // start the guide on the protected pin
+    };
     const probe = new Image();
-    probe.onload  = () => L.marker([p.lat, p.lng], { icon: logoIcon, zIndexOffset: 1000 })
-                            .bindPopup(popup, POPUP_OPTS).addTo(map);
-    probe.onerror = () => L.circleMarker([p.lat, p.lng], {
+    probe.onload  = () => attach(L.marker([p.lat, p.lng], { icon: logoIcon, zIndexOffset: 1000 }));
+    probe.onerror = () => attach(L.circleMarker([p.lat, p.lng], {
                             radius: 11, color: "#fff", weight: 3,
-                            fillColor: PROTECT_FALLBACK, fillOpacity: 0.95
-                          }).bindPopup(popup, POPUP_OPTS).addTo(map);
+                            fillColor: PROTECT_FALLBACK, fillOpacity: 0.95 }));
     probe.src = "assets/tp-logo.png";
   }
   MAP_DATA.points.forEach(p => {
     if (p.type === "protected") { addProtected(p); return; }
-    L.circleMarker([p.lat, p.lng], {
+    const m = L.circleMarker([p.lat, p.lng], {
       radius: 9, color: "#ffffff", weight: 2,
       fillColor: p.type === "slope" ? SLOPE : PREDATED, fillOpacity: 0.95
     }).bindPopup(popupHTML(p.title, p.desc, p.media, null, null, p.blocks), POPUP_OPTS).addTo(map);
+    if (p.id === 2) CALLOUT_PIN[2] = { marker: m, latlng: [p.lat, p.lng] };   // 2nd guided callout
   });
 
   // --- Fit to all features ---
@@ -255,8 +312,55 @@
   // hide the top-left header while any popup is open so it can never cover it
   const headerEl = document.getElementById("header");
   L.DomEvent.disableClickPropagation(headerEl);
-  map.on("popupopen",  () => { headerEl.style.display = "none"; });
-  map.on("popupclose", () => { headerEl.style.display = ""; });
+
+  // show a brief "scroll" hint when a popup's media is taller than its viewport
+  function addScrollTip(root) {
+    const media = root.querySelector(".pop .media");
+    const pop = root.querySelector(".pop");
+    if (!media || !pop) return;
+    const show = () => {
+      if (media.scrollHeight - media.clientHeight <= 8) return false;   // not scrollable
+      if (pop.querySelector(".scroll-tip")) return true;                // already shown
+      const tip = document.createElement("div");
+      tip.className = "scroll-tip";
+      tip.textContent = "Scroll for more ↓";
+      pop.appendChild(tip);
+      const hide = () => { tip.classList.add("hide"); setTimeout(() => tip.remove(), 400); };
+      media.addEventListener("scroll", hide, { once: true });
+      setTimeout(hide, 3500);
+      return true;
+    };
+    if (!show()) {   // media may still be loading -> re-check as it does
+      media.querySelectorAll("img").forEach(im => im.addEventListener("load", show, { once: true }));
+      media.querySelectorAll("video").forEach(v => v.addEventListener("loadedmetadata", show, { once: true }));
+      setTimeout(show, 500);
+    }
+  }
+
+  map.on("popupopen", e => {
+    popupIsOpen = true;
+    headerEl.style.display = "none";
+    const el = e.popup.getElement();
+    if (el) addScrollTip(el);
+    // guided callouts: clicking the current target advances (8 -> 2); clicking anything else cancels
+    if (guideStage != null) {
+      const info = CALLOUT_PIN[guideStage];
+      const clickedTarget = info && e.popup === info.marker.getPopup();
+      const stageWas = guideStage;
+      clearCallout();
+      guideStage = null;
+      armNext = clickedTarget && stageWas === 8;   // show the ID 2 callout after ID 8 is closed
+    }
+  });
+  map.on("popupclose", () => {
+    popupIsOpen = false;
+    headerEl.style.display = "";
+    if (armNext) {
+      armNext = false;
+      // slight defer so switching straight to another pin doesn't flash the next callout
+      setTimeout(() => { if (guideStage == null && !popupIsOpen && CALLOUT_PIN[2]) paintCallout(2); }, 80);
+    }
+  });
 </script>
 </body>
 </html>
